@@ -1,71 +1,104 @@
-# Docker and Docker-compose Installer Script for Ubuntu
+# Docker Engine and Docker Compose Installer for Ubuntu
 
-This is a Bash script for installing Docker and Docker-compose on Ubuntu. The script is compatible with Ubuntu 18.04, 20.04, and 22.04, and supports optional installation of both Docker and Docker-compose.
+This Bash script installs Docker Engine and/or Docker Compose on Ubuntu. It is version-agnostic: instead of hardcoding a single Ubuntu release or CPU architecture, it detects the Ubuntu codename from `/etc/os-release`, detects the apt architecture with `dpkg`, and validates that Docker publishes packages for that codename, architecture, and channel before installing.
+
+Docker only publishes packages for supported release and architecture combinations. For older Ubuntu releases, derivatives, mirrors, or advanced environments, use the override flags below.
 
 ## Prerequisites
 
-Before running the script, make sure that you have a clean Ubuntu installation and that you have administrative privileges on the system.
+Run the script on Ubuntu or an Ubuntu-like distribution with administrative privileges. The script uses `sudo` when it is not run as root.
 
 ## Usage
 
-To use the script, follow these steps:
+Make the script executable:
 
-1. Download the script to your system.
-2. Make the script executable by running the following command in the directory where the script is located:
-
-```
+```bash
 chmod +x docker-install.sh
 ```
 
-3. Run the script with the appropriate command line arguments to install Docker and/or Docker-compose, as described below.
+Install Docker Engine and Docker Compose:
 
-### Command Line Arguments
-
-The script supports the following command line arguments:
-
-- `--with-docker`: Installs Docker.
-- `--with-compose`: Installs Docker-compose.
-
-You can use these arguments to customize the installation according to your needs.
-
-### Installing Docker and Docker-compose
-
-To install both Docker and Docker-compose, run the following command:
-
-```
+```bash
 ./docker-install.sh --with-docker --with-compose
 ```
 
+Install Docker only:
 
-This command installs Docker and adds the current user to the `docker` group, enabling the user to run Docker commands without sudo. It also installs Docker-compose and verifies that both Docker and Docker-compose are installed correctly.
-
-### Installing Docker-compose Only
-
-To install Docker-compose only, run the following command:
-
-```
-./docker-install.sh --with-compose
-```
-
-
-This command installs Docker-compose and verifies that it is installed correctly.
-
-### Installing Docker Only
-
-To install Docker only, run the following command:
-
-```
+```bash
 ./docker-install.sh --with-docker
 ```
 
-This command installs Docker and adds the current user to the `docker` group, enabling the user to run Docker commands without sudo. It also verifies that Docker is installed correctly.
+Install Docker Compose only:
 
-### Verification
+```bash
+./docker-install.sh --with-compose
+```
 
-After installing Docker and/or Docker-compose, you can verify that the installation was successful by running the following commands:
+By default, `--with-compose` installs the current Docker Compose v2 plugin from Docker's apt repository. Use `docker compose ...` after installation.
 
-- `docker --version`: Prints the version of Docker installed on your system.
-- `docker-compose --version`: Prints the version of Docker-compose installed on your system (if installed).
+## Command Line Arguments
+
+- `--with-docker`: Installs Docker Engine.
+- `--with-compose`: Installs Docker Compose.
+- `--channel <stable|test|nightly>`: Selects the Docker apt repository channel. Default: `stable`.
+- `--docker-version <version>`: Installs a specific `docker-ce` and `docker-ce-cli` apt version.
+- `--compose-method <plugin|standalone|both>`: Selects how Compose is installed. Default: `plugin`.
+- `--compose-version <version>`: Installs a specific standalone Compose version, such as `v2.x.y`.
+- `--ubuntu-codename <codename>`: Overrides Ubuntu codename detection, such as `noble`, `jammy`, or `focal`.
+- `--repo-url <url>`: Uses a custom Docker apt repository URL or mirror.
+- `--skip-repo-check`: Skips the preflight check for Docker packages in the selected repository.
+- `--no-remove-conflicts`: Keeps potentially conflicting packages instead of removing them first.
+- `--no-usermod`: Does not add the invoking user to the `docker` group.
+- `-h`, `--help`: Shows script help.
+
+## Examples
+
+Install Docker and Compose on the detected Ubuntu release:
+
+```bash
+./docker-install.sh --with-docker --with-compose
+```
+
+Install from Docker's `test` channel:
+
+```bash
+./docker-install.sh --with-docker --with-compose --channel test
+```
+
+Override codename detection for an Ubuntu derivative:
+
+```bash
+./docker-install.sh --with-docker --with-compose --ubuntu-codename noble
+```
+
+Install the legacy standalone `docker-compose` command:
+
+```bash
+./docker-install.sh --with-compose --compose-method standalone
+```
+
+Install both the Compose plugin and standalone binary:
+
+```bash
+./docker-install.sh --with-docker --with-compose --compose-method both
+```
+
+## Verification
+
+After installation, verify the installed commands:
+
+```bash
+docker --version
+docker compose version
+```
+
+If you installed standalone Compose, verify it with:
+
+```bash
+docker-compose --version
+```
+
+If the script added your user to the `docker` group, log out and back in before running Docker commands without `sudo`.
 
 ## License
 
